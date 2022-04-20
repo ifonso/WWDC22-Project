@@ -30,12 +30,6 @@ public let Story: [[String]] = [[""],
     ["Okay, but no roulette works like that! Time to exit the hypothetical event, let's play something similar to European Roulette:", "We now have 15 squares on our roulette, where 7 of these are black, 7 are red, and 1 is gold.", "**Rules**: the red and black houses continue with the same return of **1:1**, but the gold house has a return of **1:13**, that is, if we bet on it and it is drawn, we win 14x the value of our bet."],
 ]
 
-public enum userCardColors {
-    case red
-    case black
-    case gold
-}
-
 public struct FirstPage: View {
     public var body: some View {
         VStack {

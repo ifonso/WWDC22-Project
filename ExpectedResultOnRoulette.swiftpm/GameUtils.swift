@@ -26,7 +26,6 @@ public struct AppColors {
 public struct CardPreset {
     public let number: UInt
     public let color: Color
-    public let colorReference: userCardColors
     
     private let maximum: UInt = 14
     
@@ -38,13 +37,10 @@ public struct CardPreset {
 
         if CardPreset.BLACKS.contains(number) {
             color = AppColors.primaryBlack
-            colorReference = .black
         } else if CardPreset.REDS.contains(number) {
             color = AppColors.primaryRed
-            colorReference = .red
         } else {
             color = AppColors.primaryGold
-            colorReference = .gold
         }
     }
 }

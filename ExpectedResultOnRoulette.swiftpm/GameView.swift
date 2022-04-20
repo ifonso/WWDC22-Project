@@ -21,6 +21,7 @@ struct GameView: View {
         ZStack {
             VStack {
                 Spacer().frame(height: 10)
+
                 Info.padding(.horizontal, 36)
                 
                 Spacer()
@@ -33,6 +34,7 @@ struct GameView: View {
                             .font(.system(size: 16, design: .monospaced))
                             .opacity(0.4)
                             .padding(.leading, 36)
+
                         Spacer()
                     }
                     .padding(.vertical, 10)
@@ -41,11 +43,10 @@ struct GameView: View {
                 Spacer()
                 
                 Inputs.padding(.horizontal, 36)
+
                 Spacer().frame(height: 60)
             }
-            .onTapGesture {
-                focusOff()
-            }
+            .onTapGesture { focusOff() }
         }
         .alert(isPresented: $outOfMoney) {
             Alert(
@@ -56,6 +57,7 @@ struct GameView: View {
         .sheet(isPresented: $helpPopup) {
             HelpPopup()
         }
+        .background(AppColors.backgroundDarker)
     }
     
     var Game: some View {
@@ -71,7 +73,9 @@ struct GameView: View {
     var Info: some View {
         HStack {
             VStack(alignment: .leading) {
+                
                 Spacer()
+                
                 HStack(spacing: 0) {
                     Text("BALANCE: ")
                         .foregroundColor(.white)
@@ -84,8 +88,8 @@ struct GameView: View {
                 HStack(spacing: 0) {
                     Text("EV: ")
                         .foregroundColor(.white)
-                    Text(String(State.expectedValue.formatted()))
-                        .foregroundColor(State.expectedValue < 0 ? AppColors.primaryRed : .gray)
+                    Text(String(format: "$ %.2f", State.betsState.expectedValue))
+                        .foregroundColor(State.betsState.expectedValue < 0 ? AppColors.primaryRed : .gray)
                 }.font(.system(size: 16, design: .monospaced))
                 
                 Spacer().frame(height: 6)
@@ -121,7 +125,7 @@ struct GameView: View {
             
             HStack {
                 VStack {
-                    Text("$\(State.currentBets["red"]!)")
+                    Text("$\(State.betsState.redBet)")
                         .padding(.bottom, 10)
                         .font(.system(size: 16, weight: .regular, design: .monospaced))
                     
@@ -129,7 +133,8 @@ struct GameView: View {
                         BetButton(text: "2x", color: AppColors.primaryRed)
                         Button("R"){
                             focusOff()
-                            self.State.currentBets["red"]! += State.currentValue ?? 0
+                            
+                            self.State.betsState.redBet += Int(State.currentValue ?? 0)
                         }.font(.system(size: 64)).foregroundColor(.clear)
                     }
                 }
@@ -137,7 +142,7 @@ struct GameView: View {
                 Spacer()
                 
                 VStack {
-                    Text("$\(State.currentBets["black"]!)")
+                    Text("$\(State.betsState.blackBet)")
                         .padding(.bottom, 10)
                         .font(.system(size: 16, weight: .regular, design: .monospaced))
                     
@@ -145,7 +150,8 @@ struct GameView: View {
                         BetButton(text: "2x", color: AppColors.primaryBlack)
                         Button("B"){
                             focusOff()
-                            self.State.currentBets["black"]! += State.currentValue ?? 0
+                            
+                            self.State.betsState.blackBet += Int(State.currentValue ?? 0)
                         }.font(.system(size: 64)).foregroundColor(.clear)
                     }
                 }
@@ -153,7 +159,7 @@ struct GameView: View {
                 Spacer()
                 
                 VStack {
-                    Text("$\(State.currentBets["gold"]!)")
+                    Text("$\(State.betsState.goldBet)")
                         .padding(.bottom, 10)
                         .font(.system(size: 16, weight: .regular, design: .monospaced))
                     
@@ -161,7 +167,8 @@ struct GameView: View {
                         BetButton(text: "14x", color: AppColors.primaryGold)
                         Button("G"){
                             focusOff()
-                            self.State.currentBets["gold"]! += State.currentValue ?? 0
+                            
+                            self.State.betsState.goldBet += Int(State.currentValue ?? 0)
                         }.font(.system(size: 64)).foregroundColor(.clear)
                     }
                 }
@@ -216,10 +223,7 @@ struct GameView: View {
                         .opacity(0.3)
                     
                     Button("FAST") {
-                        withAnimation(.easeIn) {
-                            autoSpin = !autoSpin
-                        }
-                        
+                        withAnimation(.easeIn) { autoSpin.toggle() }
                     }
                         .frame(width: 90, height: 62)
                         .background(AppColors.backgroundLessDarker)
@@ -236,11 +240,7 @@ struct GameView: View {
                         .frame(width: 92, height: 64)
                         .opacity(0.3)
                     
-                    Button("CLEAR") {
-                        for (color, _) in State.currentBets {
-                            State.currentBets[color] = 0
-                        }
-                    }
+                    Button("CLEAR") { clearBets() }
                         .frame(width: 90, height: 62)
                         .background(AppColors.backgroundLessDarker)
                         .cornerRadius(8)
@@ -279,35 +279,37 @@ struct GameView: View {
     func computeResultBalance() {
         var result: Float = 0
         
-        for (color, bet) in State.currentBets {
-            if color == State.winnerColor! {
-                if color == "gold" {
-                    result += 14 * Float(bet)
-                    
-                } else {
-                    result += 2 * Float(bet)
-                }
-            }
+        if State.winnerColor == "red" {
+            result += 2 * Float(State.betsState.redBet)
+        }
+        
+        if State.winnerColor == "black" {
+            result += 2 * Float(State.betsState.blackBet)
+        }
+        
+        if State.winnerColor == "gold" {
+            result += 14 * Float(State.betsState.goldBet)
         }
         
         State.lastWin = result
         
-        for (_, bet) in State.currentBets {
-            result -= Float(bet)
-        }
+        result -= Float(State.betsState.blackBet + State.betsState.redBet + State.betsState.goldBet)
         
         State.balance += result
     }
     
     func spinRoulette() {
-        if !(State.balance - Float(State.totalBets) > 0) {
+        if !(State.balance - Float(State.betsState.totalBets) > 0) {
             return outOfMoney.toggle()
         }
         
+        // draw result
         draw()
         
-        self.State.gameNumber += 1
-        self.roulettePosition = 3000
+        State.gameNumber += 1
+        // reset roulette position
+        roulettePosition = 3000
+        
         let drawnPosition = numbersPosition[self.State.drawnNumber!]!
         
         if autoSpin {
@@ -328,6 +330,12 @@ struct GameView: View {
     
     func focusOff() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
+    }
+    
+    func clearBets() {
+        State.betsState.redBet = 0
+        State.betsState.blackBet = 0
+        State.betsState.goldBet = 0
     }
 }
 

@@ -7,30 +7,60 @@
 
 import Foundation
 
+struct BetsState {
+    var redBet: Int = 0
+    var blackBet: Int = 0
+    var goldBet: Int = 0
+    
+    let returns = (red: 1, black: 1, gold: 13)
+    let probabilities = (red: 0.4667, black: 0.4667, gold: 0.0667)
+    
+    public var totalBets: Int {
+        get {
+            return redBet + blackBet + goldBet
+        }
+    }
+    
+    var redReturn: Float {
+        get {
+            return Float(redBet * returns.red - (totalBets - redBet)) * Float(probabilities.red)
+        }
+    }
+    
+    var blackReturn: Float {
+        get {
+            return Float(blackBet * returns.black - (totalBets - blackBet)) * Float(probabilities.black)
+        }
+    }
+    
+    var goldReturn: Float {
+        get {
+            return Float(goldBet * returns.gold - (totalBets - goldBet)) * Float(probabilities.gold)
+        }
+    }
+    
+    var expectedValue: Float {
+        get {
+            return redReturn + blackReturn + goldReturn
+        }
+    }
+}
+
 public class GameState: ObservableObject {
     @Published var balance: Float = 100000 {
         didSet {
             self.lastRetrun = balance - oldValue
         }
     }
+    
+    @Published var betsState = BetsState()
 
-    @Published var currentBets: [String: UInt] = ["red": 0, "black": 0, "gold": 0]
     @Published var drawnNumber: UInt?
     @Published var currentValue: UInt?
     @Published var lastWin: Float = 0
     // Manter só se criar o return/game
     @Published var lastRetrun: Float = 0
-    
     @Published var gameNumber: UInt = 0
-    
-    var totalBets: UInt {
-        get {
-            return currentBets["red"]! + currentBets["black"]! + currentBets["gold"]!
-        }
-    }
-    
-    let gains: [String: Int] = ["red": 1, "black": 1, "gold": 13]
-    let probabilities: [String: Float] = ["red": 7/15, "black": 7/15, "gold": 1/15]
     
     var betValue: String {
         get {
@@ -53,19 +83,6 @@ public class GameState: ObservableObject {
                 }
             }
             return nil
-        }
-    }
-    
-    var expectedValue: Float {
-        get {
-            var finalValue: Float = 0
-            let total: UInt = totalBets
-            for (color, bet) in self.currentBets {
-                let returnValue = (Int(bet) * gains[color]!) - (Int(total) - Int(bet))
-                finalValue += Float(returnValue) * probabilities[color]!
-            }
-
-            return finalValue
         }
     }
 }
