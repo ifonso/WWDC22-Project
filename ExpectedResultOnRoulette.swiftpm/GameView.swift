@@ -44,7 +44,7 @@ struct GameView: View {
                 Spacer().frame(height: 60)
             }
             .onTapGesture {
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
+                focusOff()
             }
         }
         .alert(isPresented: $outOfMoney) {
@@ -97,11 +97,7 @@ struct GameView: View {
             
             Spacer()
             
-            Button {
-                State.balance = 100000
-                State.gameNumber = 0
-                State.lastWin = 0
-            } label: {
+            Button { resetGame() } label: {
                 Image(systemName: "arrow.counterclockwise")
             }
                 .frame(width: 40, height: 40)
@@ -132,6 +128,7 @@ struct GameView: View {
                     ZStack {
                         BetButton(text: "2x", color: AppColors.primaryRed)
                         Button("R"){
+                            focusOff()
                             self.State.currentBets["red"]! += State.currentValue ?? 0
                         }.font(.system(size: 64)).foregroundColor(.clear)
                     }
@@ -147,6 +144,7 @@ struct GameView: View {
                     ZStack {
                         BetButton(text: "2x", color: AppColors.primaryBlack)
                         Button("B"){
+                            focusOff()
                             self.State.currentBets["black"]! += State.currentValue ?? 0
                         }.font(.system(size: 64)).foregroundColor(.clear)
                     }
@@ -162,6 +160,7 @@ struct GameView: View {
                     ZStack {
                         BetButton(text: "14x", color: AppColors.primaryGold)
                         Button("G"){
+                            focusOff()
                             self.State.currentBets["gold"]! += State.currentValue ?? 0
                         }.font(.system(size: 64)).foregroundColor(.clear)
                     }
@@ -268,7 +267,7 @@ struct GameView: View {
             }
         }
         .onTapGesture {
-            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
+            focusOff()
         }
     }
     
@@ -319,6 +318,16 @@ struct GameView: View {
             }
         }
         computeResultBalance()
+    }
+    
+    func resetGame() {
+        State.balance = 100000
+        State.gameNumber = 0
+        State.lastWin = 0
+    }
+    
+    func focusOff() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to:nil, from:nil, for:nil)
     }
 }
 
