@@ -55,9 +55,11 @@ struct GameView: View {
                 dismissButton: .default(Text("Ok")))
         }
         .sheet(isPresented: $helpPopup) {
-            HelpPopup()
+            HelpPopup().background(.black)
         }
-        .background(AppColors.backgroundDarker)
+        .onAppear {
+            helpPopup = true
+        }
     }
     
     var Game: some View {
@@ -88,7 +90,7 @@ struct GameView: View {
                 HStack(spacing: 0) {
                     Text("EV: ")
                         .foregroundColor(.white)
-                    Text(String(format: "$ %.2f", State.betsState.expectedValue))
+                    Text(String(format: "%.2f", State.betsState.expectedValue))
                         .foregroundColor(State.betsState.expectedValue < 0 ? AppColors.primaryRed : .gray)
                 }.font(.system(size: 16, design: .monospaced))
                 
@@ -128,14 +130,12 @@ struct GameView: View {
                     Text("$\(State.betsState.redBet)")
                         .padding(.bottom, 10)
                         .font(.system(size: 16, weight: .regular, design: .monospaced))
-                    
-                    ZStack {
+                        
+                    Button{
+                        focusOff()
+                        self.State.betsState.redBet += Int(State.currentValue ?? 0)
+                    } label: {
                         BetButton(text: "2x", color: AppColors.primaryRed)
-                        Button("R"){
-                            focusOff()
-                            
-                            self.State.betsState.redBet += Int(State.currentValue ?? 0)
-                        }.font(.system(size: 64)).foregroundColor(.clear)
                     }
                 }
                 
@@ -146,13 +146,11 @@ struct GameView: View {
                         .padding(.bottom, 10)
                         .font(.system(size: 16, weight: .regular, design: .monospaced))
                     
-                    ZStack {
+                    Button {
+                        focusOff()
+                        self.State.betsState.blackBet += Int(State.currentValue ?? 0)
+                    } label: {
                         BetButton(text: "2x", color: AppColors.primaryBlack)
-                        Button("B"){
-                            focusOff()
-                            
-                            self.State.betsState.blackBet += Int(State.currentValue ?? 0)
-                        }.font(.system(size: 64)).foregroundColor(.clear)
                     }
                 }
                 
@@ -163,13 +161,11 @@ struct GameView: View {
                         .padding(.bottom, 10)
                         .font(.system(size: 16, weight: .regular, design: .monospaced))
                     
-                    ZStack {
-                        BetButton(text: "14x", color: AppColors.primaryGold)
-                        Button("G"){
-                            focusOff()
-                            
-                            self.State.betsState.goldBet += Int(State.currentValue ?? 0)
-                        }.font(.system(size: 64)).foregroundColor(.clear)
+                    Button{
+                        focusOff()
+                        self.State.betsState.goldBet += Int(State.currentValue ?? 0)
+                    } label: {
+                            BetButton(text: "14x", color: AppColors.primaryGold)
                     }
                 }
             }
@@ -184,8 +180,7 @@ struct GameView: View {
                     Text("Amount")
                 }
                 .foregroundColor(.white)
-                .font(.system(size: 14, weight: .regular, design: .rounded))
-                .opacity(0.3)
+                .font(.system(size: 16, weight: .regular, design: .rounded))
                 
                 Spacer()
                 
@@ -220,7 +215,7 @@ struct GameView: View {
                     RoundedRectangle(cornerRadius: 9)
                         .fill(.white)
                         .frame(width: 92, height: 64)
-                        .opacity(0.3)
+                        .opacity(0.5)
                     
                     Button("FAST") {
                         withAnimation(.easeIn) { autoSpin.toggle() }
@@ -229,7 +224,7 @@ struct GameView: View {
                         .background(AppColors.backgroundLessDarker)
                         .cornerRadius(8)
                         .font(.system(size: 16, weight: .bold, design: .monospaced))
-                        .foregroundColor(autoSpin ? .green : AppColors.primaryRed)
+                        .foregroundColor(autoSpin ? .gray : AppColors.primaryRed)
                 }
                 
                 Spacer()
@@ -238,7 +233,7 @@ struct GameView: View {
                     RoundedRectangle(cornerRadius: 9)
                         .fill(.white)
                         .frame(width: 92, height: 64)
-                        .opacity(0.3)
+                        .opacity(0.5)
                     
                     Button("CLEAR") { clearBets() }
                         .frame(width: 90, height: 62)
@@ -254,7 +249,7 @@ struct GameView: View {
                     RoundedRectangle(cornerRadius: 9)
                         .fill(.white)
                         .frame(width: 92, height: 64)
-                        .opacity(0.3)
+                        .opacity(0.5)
 
                     Button("SPIN") { spinRoulette() }
                         .frame(width: 90, height: 62)
@@ -348,7 +343,7 @@ struct BetButton: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(.white)
                 .frame(width: 80, height: 80)
-                .opacity(0.2)
+                .opacity(0.3)
             
             ZStack {
                 Rectangle()
@@ -359,17 +354,17 @@ struct BetButton: View {
                 VStack(alignment: .center) {
                     Text(text)
                         .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .foregroundColor(.white)
                         .padding(.top, 7)
                     
                     ZStack {
                         Rectangle()
+                            .fill(.white)
                             .frame(height: 38)
-                            .opacity(1)
                         
                         Text("BET")
                             .font(.system(size: 16, weight: .bold, design: .rounded))
                             .foregroundColor(AppColors.primaryBlack)
-                            .opacity(0.75)
                     }
                 }
             }
@@ -401,22 +396,30 @@ struct DeckView: View {
 struct HelpPopup: View {
     public var body: some View {
         ScrollView {
-            VStack(alignment: .leading) {
-                Text("How To Play")
-                    .font(.system(.title2))
-                    .foregroundColor(.white)
-                
+            VStack(alignment: .leading, spacing: 24) {
                 Spacer().frame(height: 20)
-
-                Text("**1** - In the upper left corner you can find relevant information such as balance, expected value and number of games.\n\n**2** - In the field \"**Bet Amount**\" you can put the amount you want to play.\n\n**3** - After placing a value, choose one or more colors to play by clicking on any of the \"**BET**\" buttons.\n(you can play different values in each color).\n\n**4** - After placing your bet, press \"**SPIN**\" to play.\n\n**CLEAR:** Use the \"**CLEAR**\" button to clear the betting area.\n\n**FAST:** When the \"**FAST**\" mode is activated its color turns green and when you press \"**SPIN**\", the spins occur without animation.")
                 
+                Text("How To Play")
+                    .font(.system(.title))
+                    .foregroundColor(.white)
+
+                Text("**1** - In the upper left corner you can find relevant information such as balance, expected value and number of games.")
+                
+                Text("**2** - In the field \"**Bet Amount**\" you can put the amount you want to play.")
+                
+                Text("**3** - After placing a value, choose one or more colors to play by clicking on any of the \"**BET**\" buttons.\n(you can play different values in each color).")
+                
+                Text("**4** - After placing your bet, press \"**SPIN**\" to play.")
+                
+                Text("**CLEAR:** Use the \"**CLEAR**\" button to clear the betting area.")
+                
+                Text("**FAST:** When the \"**FAST**\" mode is activated its color turns green and when you press \"**SPIN**\", the spins occur without animation.")
             }
             .font(.system(.body))
             .foregroundColor(.white)
             
         }
         .padding(26)
-        .background(AppColors.backgroundDarker)
         .cornerRadius(16)
     }
 }
