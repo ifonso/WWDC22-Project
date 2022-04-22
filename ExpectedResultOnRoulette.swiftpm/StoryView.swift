@@ -24,8 +24,10 @@ struct StoryView: View {
                 Button("Restart") {
                     self.page = 0
                 }
+                .frame(width: 80, height: 40)
+                .background(AppColors.backgroundGray)
                 .foregroundColor(.white)
-                .opacity(0.5)
+                .cornerRadius(6)
                 
                 Spacer()
             }.padding(20)
@@ -36,7 +38,7 @@ struct StoryView: View {
                 if page == 0 {
                     FirstPage()
                 } else {
-                    VStack {
+                    VStack(alignment: .leading) {
                         ForEach(Story[page], id: \.self) { text in
                             Text(getMarkdown(text: text))
                                 .font(.system(.body))
@@ -61,9 +63,34 @@ struct StoryView: View {
                         
                         if page == 4 {
                             Spacer().frame(height: 21)
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(AppColors.primaryRed)
-                                .frame(width: 90, height: 90)
+                            HStack(alignment: .center) {
+                                Spacer()
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(AppColors.primaryRed)
+                                    .frame(width: 80, height: 80)
+                                Spacer()
+                            }
+                        }
+                        
+                        if page == 5 {
+                            HStack(alignment: .center, spacing: 30) {
+                                Spacer()
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(AppColors.primaryRed)
+                                        .frame(width: 80, height: 80)
+                                    Text("+10")
+                                        .font(.system(size: 21))
+                                }
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(AppColors.primaryBlack)
+                                        .frame(width: 80, height: 80)
+                                    Text("-10")
+                                        .font(.system(size: 21))
+                                }
+                                Spacer()
+                            }
                         }
                         
                         if page == 7 {
@@ -120,13 +147,13 @@ struct StoryView: View {
                 
                 Spacer().frame(width: 110)
                 Button {
-                    if page == 10 {
+                    if page == 11 {
                         tab = 2
                     } else {
                         next()
                     }
                 } label: {
-                    if page == 10 {
+                    if page == 11 {
                         Text("Play")
                             .foregroundColor(.blue)
                             .frame(width: 60, height: 40)
@@ -177,10 +204,13 @@ struct randomAnimation: View {
     
     var body: some View {
         VStack {
+            Text("TEST IT!")
+                .font(.system(.title))
+            Spacer().frame(height: 50)
             HStack {
-                Text("Wins: \(wins)")
+                Text("**Wins:** \(wins)")
                 Spacer().frame(width: 50)
-                Text("Losses: \(losses)")
+                Text("**Losses:** \(losses)")
             }
             
             Spacer().frame(height: 60)
