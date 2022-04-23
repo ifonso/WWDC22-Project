@@ -27,12 +27,17 @@ struct GameView: View {
                 Spacer()
                 
                 VStack {
-                    Game.frame(height: 130).background(AppColors.backgroundLessDarker)
+                    Game
+                        .frame(height: 130)
+                        .background(AppColors.backgroundLessDarker)
+                        .onAnimationCompleted(for: roulettePosition) {
+                            computeResultBalance()
+                        }
                     
                     HStack {
                         Text("Last win: $\(State.lastWin.formatted())")
                             .font(.system(size: 16, design: .monospaced))
-                            .opacity(0.4)
+                            .opacity(0.7)
                             .padding(.leading, 36)
 
                         Spacer()
@@ -83,7 +88,7 @@ struct GameView: View {
                         .foregroundColor(.white)
                         Text("$\(State.balance.formatted())")
                         .foregroundColor(AppColors.primaryGold)
-                }.font(.system(size: 16, design: .monospaced))
+                }.font(.system(size: 17, weight: .bold ,design: .monospaced))
                 
                 Spacer().frame(height: 4)
                 
@@ -308,13 +313,13 @@ struct GameView: View {
         let drawnPosition = numbersPosition[self.State.drawnNumber!]!
         
         if autoSpin {
-            self.roulettePosition = drawnPosition
+            roulettePosition = drawnPosition
+            computeResultBalance()
         } else {
             withAnimation(.easeOut(duration: 2)) {
-                self.roulettePosition = drawnPosition + CGFloat.random(in: -40...40)
+                roulettePosition = drawnPosition + CGFloat.random(in: -40...40)
             }
         }
-        computeResultBalance()
     }
     
     func resetGame() {
@@ -404,16 +409,32 @@ struct HelpPopup: View {
                     .foregroundColor(.white)
 
                 Text("**1** - In the upper left corner you can find relevant information such as balance, expected value and number of games.")
+                    
+                Image("relevant_info")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 250)
+                    .cornerRadius(12)
                 
                 Text("**2** - In the field \"**Bet Amount**\" you can put the amount you want to play.")
                 
+                Image("bet_amount_input")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300)
+                    .cornerRadius(12)
+                
                 Text("**3** - After placing a value, choose one or more colors to play by clicking on any of the \"**BET**\" buttons.\n(you can play different values in each color).")
+                
+                Image("bets")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 300)
+                    .cornerRadius(12)
                 
                 Text("**4** - After placing your bet, press \"**SPIN**\" to play.")
                 
-                Text("**CLEAR:** Use the \"**CLEAR**\" button to clear the betting area.")
-                
-                Text("**FAST:** When the \"**FAST**\" mode is activated its color turns green and when you press \"**SPIN**\", the spins occur without animation.")
+                Text("**CLEAR:** Use the \"**CLEAR**\" button to clear the betting area.\n\n**FAST:** When the **FAST MODE** is activated its color turns gray and when you press **SPIN**, the spins occur without animation.")
             }
             .font(.system(.body))
             .foregroundColor(.white)
@@ -421,5 +442,42 @@ struct HelpPopup: View {
         }
         .padding(26)
         .cornerRadius(16)
+    }
+}
+
+struct AnimationCompletionObserverModifier<Value>: AnimatableModifier where Value: VectorArithmetic {
+
+    var animatableData: Value {
+        didSet {
+            notifyCompletionIfFinished()
+        }
+    }
+
+    private var targetValue: Value
+
+    private var completion: () -> Void
+
+    init(observedValue: Value, completion: @escaping () -> Void) {
+        self.completion = completion
+        self.animatableData = observedValue
+        targetValue = observedValue
+    }
+
+    private func notifyCompletionIfFinished() {
+        guard animatableData == targetValue else { return }
+
+        DispatchQueue.main.async {
+            self.completion()
+        }
+    }
+
+    func body(content: Content) -> some View {
+        return content
+    }
+}
+
+extension View {
+    func onAnimationCompleted<Value: VectorArithmetic>(for value: Value, completion: @escaping () -> Void) -> ModifiedContent<Self, AnimationCompletionObserverModifier<Value>> {
+        return modifier(AnimationCompletionObserverModifier(observedValue: value, completion: completion))
     }
 }
