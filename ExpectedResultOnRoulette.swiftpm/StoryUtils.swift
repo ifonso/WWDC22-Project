@@ -35,10 +35,11 @@ public let Story: [[String]] = [[""],
 public struct FirstPage: View {
     public var body: some View {
         VStack {
-            Text("**Welcome!**")
+            Text("**BEM VINDO!**")
                 .font(.system(.title))
             Spacer().frame(height: 30)
-            Text("Today I came to show you the \"**secret**\" of gambling 🤑")
+            Text("\tHoje eu vou mostrar o segredo da aposta para você\n")
+            Text("🤑🤑🤑")
                 .multilineTextAlignment(.leading)
                 .font(.system(.body))
         }
